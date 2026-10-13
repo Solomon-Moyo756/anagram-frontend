@@ -1,26 +1,169 @@
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<main class="page-shell">
+  <header class="page-header">
+    <div>
+      <h1>Anagrams</h1>
+      <p class="page-description">Manage your words and explore their anagrams.</p>
+    </div>
 
-  <!-- Word Column -->
-  <ng-container matColumnDef="word">
-    <th mat-header-cell *matHeaderCellDef> Word </th>
-    <td mat-cell *matCellDef="let row"> {{ row.word }} </td>
-  </ng-container>
-
-  <!-- Actions Column -->
-  <ng-container matColumnDef="actions">
-    <th mat-header-cell *matHeaderCellDef> Actions </th>
-    <td mat-cell *matCellDef="let row">
-      <button mat-icon-button color="warn" (click)="deleteWord(row.word)">
-        <mat-icon>delete</mat-icon>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" (click)="refreshWords()" [disabled]="busy">
+        <mat-icon aria-hidden="true">refresh</mat-icon>
+        Refresh words
       </button>
-      <button mat-icon-button color="primary" (click)="getAnagrams(row.word)">
-        <mat-icon>list</mat-icon>
+      <button mat-flat-button type="button" (click)="getStats()" [disabled]="busy">
+        <mat-icon aria-hidden="true">query_stats</mat-icon>
+        Word statistics
       </button>
-    </td>
-  </ng-container>
+    </div>
+  </header>
 
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-</table>
+  <p *ngIf="errorMessage" class="message error-message" role="alert">{{ errorMessage }}</p>
+  <p *ngIf="successMessage" class="message success-message" role="status">{{ successMessage }}</p>
 
-<mat-paginator [pageSize]="5" [pageSizeOptions]="[5, 10, 20]"></mat-paginator>
+  <section class="add-card" aria-labelledby="add-word-heading">
+    <div>
+      <h2 id="add-word-heading">Add a word</h2>
+      <p>Enter a word to include it in the dictionary.</p>
+    </div>
+    <form class="add-form">
+      <label class="visually-hidden" for="new-word">New word</label>
+      <input
+        id="new-word"
+        type="text"
+        autocomplete="off"
+        placeholder="e.g. listen"
+        [formControl]="newWord"
+        [attr.aria-invalid]="newWord.invalid && newWord.touched"
+      />
+      <button mat-flat-button type="button" (click)="addWord()" [disabled]="busy || newWord.invalid">
+        <mat-icon aria-hidden="true">add</mat-icon>
+        Add word
+      </button>
+    </form>
+  </section>
+
+  <section *ngIf="stats" class="result-card" aria-labelledby="stats-heading">
+    <div class="result-heading">
+      <div>
+        <p class="eyebrow">OVERVIEW</p>
+        <h2 id="stats-heading">Anagram statistics</h2>
+      </div>
+      <span class="result-count">{{ statEntries.length }} word lengths</span>
+      <span *ngIf="statsExecutionTimeMs !== null" class="result-count">
+        Time taken: {{ statsExecutionTimeMs }} ms
+      </span>
+    </div>
+    <dl *ngIf="statEntries.length > 0; else noStats" class="stats-grid">
+      <div *ngFor="let entry of statEntries; trackBy: trackStatEntry" class="stat-item">
+        <dt>{{ entry[0] }} letters</dt>
+        <dd>{{ entry[1] }}</dd>
+      </div>
+    </dl>
+    <ng-template #noStats>
+      <p class="empty-message">No statistics are available yet.</p>
+    </ng-template>
+  </section>
+
+  <section *ngIf="anagramResult as result" class="result-card" aria-labelledby="anagrams-heading">
+    <div class="result-heading">
+      <div>
+        <p class="eyebrow">WORD LOOKUP</p>
+        <h2 id="anagrams-heading">Anagrams for “{{ result.word }}”</h2>
+      </div>
+      <span class="result-count">{{ result.words.length }} found</span>
+    </div>
+    <ul *ngIf="result.words.length > 0; else noAnagrams" class="anagram-list">
+      <li *ngFor="let anagram of result.words; trackBy: trackAnagram">{{ anagram.value }}</li>
+    </ul>
+    <ng-template #noAnagrams>
+      <p class="empty-message">No anagrams were found for this word.</p>
+    </ng-template>
+  </section>
+
+  <section class="table-card" aria-labelledby="words-heading">
+    <div class="table-heading">
+      <div>
+        <p class="eyebrow">DICTIONARY</p>
+        <h2 id="words-heading">Words</h2>
+      </div>
+      <span *ngIf="wordSearch.trim(); else totalCount" class="result-count">
+        {{ filteredWords.length }} of {{ words.length }} words
+      </span>
+      <ng-template #totalCount>
+        <span class="result-count">{{ words.length }} total</span>
+      </ng-template>
+    </div>
+
+    <ng-container *ngIf="busy && words.length === 0; else loadedWords">
+      <p class="empty-message" role="status">Loading words…</p>
+    </ng-container>
+    <ng-template #loadedWords>
+      <ng-container *ngIf="words.length > 0; else emptyWords">
+        <div class="word-search">
+          <label for="word-search-input">Search words</label>
+          <input
+            #searchInput
+            id="word-search-input"
+            type="search"
+            autocomplete="off"
+            placeholder="Type a word to filter the list"
+            [value]="wordSearch"
+            (input)="setWordSearch(searchInput.value)"
+          />
+        </div>
+
+        <ng-container *ngIf="filteredWords.length > 0; else noMatchingWords">
+          <table mat-table [dataSource]="pageWords" aria-label="Dictionary words">
+            <ng-container matColumnDef="word">
+              <th mat-header-cell *matHeaderCellDef scope="col">Word</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="word-value">{{ row.value }}</span>
+                <span class="row-actions">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="getAnagrams(row.value)"
+                    [disabled]="busy"
+                    [attr.aria-label]="'Find anagrams for ' + row.value"
+                  >
+                    <mat-icon aria-hidden="true">manage_search</mat-icon>
+                    Anagrams
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="delete-button"
+                    (click)="deleteWord(row.value)"
+                    [disabled]="busy"
+                    [attr.aria-label]="'Delete ' + row.value"
+                  >
+                    <mat-icon aria-hidden="true">delete</mat-icon>
+                    Delete
+                  </button>
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['word']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['word']"></tr>
+          </table>
+
+          <mat-paginator
+            aria-label="Words page navigation"
+            [length]="filteredWords.length"
+            [pageIndex]="pageIndex"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="[5, 10, 25, 50]"
+            (page)="onPageChange($event)"
+          ></mat-paginator>
+        </ng-container>
+        <ng-template #noMatchingWords>
+          <p class="empty-message" role="status">No words match “{{ wordSearch }}”.</p>
+        </ng-template>
+      </ng-container>
+    </ng-template>
+    <ng-template #emptyWords>
+      <p class="empty-message">Your dictionary is empty. Add a word to get started.</p>
+    </ng-template>
+  </section>
+</main>

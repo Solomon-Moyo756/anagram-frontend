@@ -1,6 +1,12 @@
 # AnagramFrontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.2.
+This project uses Angular 15.2 and Angular Material 15.
+
+> Angular 15 is no longer supported by the Angular team. This version is kept
+> for compatibility or learning purposes; it no longer receives security
+> fixes. Angular 15's supported Node.js versions are the 14.20, 16.13, and
+> 18.10 lines. The project was downgraded from Angular 22, so its
+> signal-based state has been converted to regular component properties.
 
 ## Development server
 
@@ -11,6 +17,10 @@ ng serve
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+
+## Backend API
+
+The landing page expects the Spring Boot API from [Solomon-Moyo756/anagram](https://github.com/Solomon-Moyo756/anagram) to be running at `http://localhost:8080`. Start that backend before using the word list.
 
 ## Code scaffolding
 
@@ -36,24 +46,6 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
 ## Additional Resources
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+For more information about Angular see the [Angular 15 documentation](https://v15.angular.io/docs).

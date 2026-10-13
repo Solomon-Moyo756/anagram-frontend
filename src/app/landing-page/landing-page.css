@@ -1,0 +1,303 @@
+:host {
+  display: block;
+  min-height: 100%;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.page-shell {
+  box-sizing: border-box;
+  width: min(100% - 40px, 1040px);
+  margin: 0 auto;
+  padding: 52px 0 72px;
+}
+
+.page-header,
+.header-actions,
+.add-card,
+.add-form,
+.table-heading,
+.result-heading,
+.row-actions {
+  display: flex;
+  align-items: center;
+}
+
+.page-header,
+.add-card,
+.table-heading,
+.result-heading {
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.page-header {
+  margin-bottom: 30px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: #5267b2;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 4vw, 2.7rem);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+.page-description,
+.add-card p {
+  margin-bottom: 0;
+  color: #647087;
+}
+
+.header-actions {
+  gap: 10px;
+}
+
+.add-card,
+.table-card,
+.result-card {
+  margin-bottom: 18px;
+  padding: 24px;
+  border: 1px solid #e5e9f1;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(26 43 76 / 4%);
+}
+
+.add-card p {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+}
+
+.add-form {
+  flex: 0 1 460px;
+  gap: 10px;
+}
+
+.add-form input {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 44px;
+  flex: 1;
+  padding: 0 14px;
+  border: 1px solid #cbd2df;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+}
+
+.word-search {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.word-search label {
+  color: #4c576d;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.word-search input {
+  box-sizing: border-box;
+  width: min(100%, 420px);
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #cbd2df;
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+}
+
+.word-search input:focus-visible {
+  border-color: #5267b2;
+  outline: 3px solid rgb(82 103 178 / 22%);
+  outline-offset: 1px;
+}
+
+.add-form input:focus-visible {
+  border-color: #5267b2;
+  outline: 3px solid rgb(82 103 178 / 22%);
+  outline-offset: 1px;
+}
+
+.table-heading,
+.result-heading {
+  margin-bottom: 18px;
+}
+
+.result-count {
+  color: #647087;
+  font-size: 0.85rem;
+}
+
+table {
+  width: 100%;
+}
+
+th.mat-mdc-header-cell {
+  color: #647087;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+td.mat-mdc-cell {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.word-value {
+  font-weight: 600;
+}
+
+.row-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.delete-button {
+  color: #a42e39;
+}
+
+.stats-grid,
+.anagram-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.stat-item,
+.anagram-list li {
+  min-width: 105px;
+  padding: 12px 16px;
+  border: 1px solid #e6eaf3;
+  border-radius: 10px;
+  background: #f8f9fc;
+}
+
+.stat-item dt {
+  color: #647087;
+  font-size: 0.82rem;
+}
+
+.stat-item dd {
+  margin: 4px 0 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.anagram-list {
+  list-style: none;
+}
+
+.anagram-list li {
+  min-width: auto;
+  font-weight: 600;
+}
+
+.empty-message {
+  margin: 0;
+  padding: 30px 12px;
+  color: #647087;
+  text-align: center;
+}
+
+.message {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.error-message {
+  border: 1px solid #f1c4c7;
+  background: #fff2f2;
+  color: #84232d;
+}
+
+.success-message {
+  border: 1px solid #b9e2cf;
+  background: #effaf4;
+  color: #195c3b;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 700px) {
+  .page-shell {
+    width: min(100% - 24px, 1040px);
+    padding-top: 30px;
+  }
+
+  .page-header,
+  .add-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .add-form {
+    flex: auto;
+  }
+
+  .add-card,
+  .table-card,
+  .result-card {
+    padding: 18px;
+  }
+
+  td.mat-mdc-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .row-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .add-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .row-actions button {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+}
