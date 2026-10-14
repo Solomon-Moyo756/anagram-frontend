@@ -22,6 +22,23 @@ Once the server is running, open your browser and navigate to `http://localhost:
 
 The landing page expects the Spring Boot API from [Solomon-Moyo756/anagram](https://github.com/Solomon-Moyo756/anagram) to be running at `http://localhost:8080`. Start that backend before using the word list.
 
+## Docker Compose
+
+The Compose setup builds the frontend image from this project and starts it with
+the backend and PostgreSQL services. The frontend's Nginx server serves the
+Angular app and proxies `/anagrams` requests to the `backend` service, so the
+browser does not need direct access to the backend container.
+
+Copy `.env.example` to `.env` and replace `DB_PASSWORD` with a strong password,
+then build and start the services:
+
+```bash
+docker compose up --build -d
+```
+
+Open [http://localhost](http://localhost). The frontend is also available on
+port 80, and the backend is exposed on port 8080 for direct access.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
