@@ -1,68 +1,157 @@
-# AnagramFrontend
+# Anagram
 
-This project uses Angular 15.2 and Angular Material 15.
+Anagram is a full-stack application for browsing a dictionary, finding words
+that are anagrams of a given word, and managing the word list. The Spring Boot
+backend loads and normalizes dictionary words into PostgreSQL and provides the
+API; the Angular frontend provides the interface for searching and managing
+them.
 
-> Angular 15 is no longer supported by the Angular team. This version is kept
-> for compatibility or learning purposes; it no longer receives security
-> fixes. Angular 15's supported Node.js versions are the 14.20, 16.13, and
-> 18.10 lines. The project was downgraded from Angular 22, so its
-> signal-based state has been converted to regular component properties.
+This repository contains the Docker Compose configuration for running the
+published frontend and backend images with PostgreSQL. The application source
+code is maintained separately in the
+[backend repository](https://github.com/Solomon-Moyo756/anagram) and the
+[frontend repository](https://github.com/Solomon-Moyo756/anagram-frontend).
 
-## Development server
+## Features
 
-To start a local development server, run:
+- Loads the word list automatically when the frontend opens.
+- Searches and paginates the word list.
+- Looks up anagrams for a selected word.
+- Displays statistics grouped by word length.
+- Adds and deletes words through the backend API.
+- Serves the production Angular application with Nginx in Docker.
+- Proxies API requests through Nginx so the browser can use the frontend's
+  origin for both the UI and API.
+
+## How it works
+
+At backend startup, the service reads its provided `dictionary.txt`, normalizes
+the words, and seeds the database. Normalization establishes a consistent word
+format for processing and lookup. The backend also builds an in-memory
+hash-map index for anagram lookup; hash-map access is average O(1), while
+returning matches still depends on the number of results.
+
+The backend uses Liquibase to track database changes with versioned change
+sets. This adds migration overhead for a small application, but gives database
+changes a repeatable, auditable history.
+
+The backend caches word-list and statistics results to avoid repeatedly
+querying or recalculating them. Word changes invalidate the affected cached
+results so subsequent requests can return up-to-date data.
+
+## Technologies
+
+| Area | Technologies |
+| --- | --- |
+| Frontend | Angular 15.2, Angular Material, TypeScript, RxJS |
+| Backend | Java, Spring Boot, Spring Data JPA |
+| Database and migrations | PostgreSQL, Liquibase |
+| Testing | Mockito (backend tests) |
+| Containerization | Docker, Docker Compose, Nginx |
+
+## Requirements
+
+To run the application images with Docker Compose:
+
+- Docker Engine with the Compose plugin
+- A strong database password configured as `DB_PASSWORD`
+
+To develop the applications from source, also see the requirements in each
+application repository. The frontend currently uses Node.js 18.10 or later in
+the Node 18 line and npm 9 or later; the backend requires Java 17.
+
+Angular 15 is no longer supported upstream and does not receive security fixes.
+The frontend uses it for compatibility with the existing application.
+
+## Run locally with Docker Compose
+
+The simplest way to run the complete application is to use the prebuilt images
+defined in this repository's [`docker-compose.yaml`](./docker-compose.yaml).
+You do not need to clone the backend or frontend repositories or install Java,
+Node.js, or npm for this option.
+
+Set `DB_PASSWORD` in your shell environment or in a local `.env` file beside
+`docker-compose.yaml`. Keep the password private and do not commit it. Then run
+these commands from this repository:
 
 ```bash
-ng serve
+docker compose up -d
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Compose starts the frontend and backend images with PostgreSQL. If an image is
+not already available locally, Compose pulls it from the registry named by its
+image reference. This Compose file uses prebuilt images; it does not build the
+applications from source. When the services are ready, open
+[http://localhost](http://localhost). The frontend is served on port 80, and
+the backend API is exposed on port 8080.
 
-## Backend API
+To fetch the latest published images before starting, run
+`docker compose pull` first. If you built images locally but have not published
+them, make sure their tags match those in `docker-compose.yaml` and skip the
+pull command.
 
-The landing page expects the Spring Boot API from [Solomon-Moyo756/anagram](https://github.com/Solomon-Moyo756/anagram) to be running at `http://localhost:8080`. Start that backend before using the word list.
-
-## Docker Compose
-
-The Compose setup builds the frontend image from this project and starts it with
-the backend and PostgreSQL services. The frontend's Nginx server serves the
-Angular app and proxies `/anagrams` requests to the `backend` service, so the
-browser does not need direct access to the backend container.
-
-Copy `.env.example` to `.env` and replace `DB_PASSWORD` with a strong password,
-then build and start the services:
+To check service logs or stop the application:
 
 ```bash
-docker compose up --build -d
+docker compose logs -f
+docker compose down
 ```
 
-Open [http://localhost](http://localhost). The frontend is also available on
-port 80, and the backend is exposed on port 8080 for direct access.
+`docker compose down` leaves the PostgreSQL named volume intact. To also delete
+the database data, run `docker compose down --volumes`.
 
-## Code scaffolding
+## Develop the applications from source
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+To change or run the Angular and Spring Boot applications from their source
+code, clone the
+[backend repository](https://github.com/Solomon-Moyo756/anagram) and the
+[frontend repository](https://github.com/Solomon-Moyo756/anagram-frontend)
+separately. The backend also needs PostgreSQL. Its
+[`docker-compose.yml`](https://github.com/Solomon-Moyo756/anagram/blob/master/docker-compose.yml)
+starts the database service; run that Compose file from the backend repository.
+
+Start the backend from its repository with the included Maven wrapper:
 
 ```bash
-ng generate component component-name
+./mvnw spring-boot:run
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+On Windows, use `.\mvnw.cmd spring-boot:run` instead. Once the API is running
+on port 8080, install the frontend dependencies and start its development
+server from the frontend repository:
 
 ```bash
-ng generate --help
+npm ci
+npm start
 ```
 
-## Building
+Open [http://localhost:4200](http://localhost:4200). The Angular development
+server proxies `/anagrams` requests to the backend at `http://localhost:8080`.
+For source-specific setup and build details, refer to the READMEs in the
+[backend](https://github.com/Solomon-Moyo756/anagram) and
+[frontend](https://github.com/Solomon-Moyo756/anagram-frontend) repositories.
 
-To build the project run:
+## API
 
-```bash
-ng build
-```
+The frontend calls the following endpoints under `/anagrams`:
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/anagrams/words` | Retrieve all words for the word list. |
+| `GET` | `/anagrams/stats` | Retrieve statistics grouped by word length. |
+| `GET` | `/anagrams/anagram-for-word?word={word}` | Find anagrams for the supplied word. |
+| `POST` | `/anagrams/add-word?value={word}` | Add a word to the dictionary. |
+| `DELETE` | `/anagrams/delete-word?value={word}` | Delete a word from the dictionary. |
 
-## Additional Resources
+The read endpoints return data in the backend's response format, which
+includes `data` and `executionTimeMs`. Adding or deleting a word changes the
+database and therefore can change later word-list, statistics, and anagram
+results.
 
-For more information about Angular see the [Angular 15 documentation](https://v15.angular.io/docs).
+## Repository notes
+
+This repository contains the Compose configuration for the frontend, backend,
+and database services. The application source, build files, and development
+instructions are in the separate
+[frontend](https://github.com/Solomon-Moyo756/anagram-frontend) and
+[backend](https://github.com/Solomon-Moyo756/anagram) repositories.
